@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Religion & Politics Explorer — WashU DTRC</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Tokens ─────────────────────────────────────────────────── */
+    :root {
+      --ink:       #1a1a1a;
+      --muted:     #6b6b6b;
+      --rule:      #e0ddd8;
+      --bg:        #faf9f7;
+      --surface:   #ffffff;
+      --accent:    #BA0C2F;
+      --accent-lt: #f9e8eb;
+      --data:      #BA0C2F;
+      --mono:      'JetBrains Mono', monospace;
+      --serif:     'Lora', 'nyt-cheltenham', Georgia, serif;
+      --sans:      'Inter', system-ui, sans-serif;
+    }
+
+    /* ── Reset ──────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--ink);
+      font-size: 16px;
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Nav ────────────────────────────────────────────────────── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: var(--bg);
+      border-bottom: 1px solid var(--rule);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 2rem;
+      height: 52px;
+    }
+    .nav-brand {
+      font-family: var(--serif);
+      font-size: 0.95rem;
+      color: var(--ink);
+      text-decoration: none;
+      letter-spacing: 0.01em;
+    }
+    .nav-links {
+      display: flex; gap: 2rem; list-style: none;
+    }
+    .nav-links a {
+      font-size: 0.8rem;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+    .nav-links a:hover { color: var(--ink); }
+
+    /* ── Hero ───────────────────────────────────────────────────── */
+    .hero {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 5rem 2rem 4rem;
+      border-bottom: 1px solid var(--rule);
+    }
+    .hero-eyebrow {
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1.25rem;
+    }
+    .hero h1 {
+      font-family: var(--serif);
+      font-size: clamp(2.4rem, 5vw, 3.6rem);
+      line-height: 1.15;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 1.5rem;
+      max-width: 720px;
+    }
+    .hero h1 em {
+      font-style: italic;
+      color: var(--accent);
+    }
+    .hero-lead {
+      font-size: 1.1rem;
+      color: var(--muted);
+      max-width: 580px;
+      margin-bottom: 2rem;
+      line-height: 1.75;
+    }
+    .hero-meta {
+      display: flex; gap: 2.5rem; flex-wrap: wrap;
+    }
+    .meta-item {
+      display: flex; flex-direction: column; gap: 0.2rem;
+    }
+    .meta-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .meta-value {
+      font-family: var(--serif);
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    /* ── Layout ─────────────────────────────────────────────────── */
+    .content {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
+
+    /* ── Section headers ────────────────────────────────────────── */
+    .section {
+      padding: 4rem 0;
+      border-bottom: 1px solid var(--rule);
+    }
+    .section:last-child { border-bottom: none; }
+
+    .section-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.75rem;
+    }
+    .section h2 {
+      font-family: var(--serif);
+      font-size: 1.9rem;
+      font-weight: 700;
+      line-height: 1.25;
+      margin-bottom: 1.25rem;
+      color: var(--ink);
+    }
+    .section p {
+      color: var(--muted);
+      max-width: 640px;
+      margin-bottom: 1rem;
+    }
+    .section p:last-child { margin-bottom: 0; }
+
+    /* ── Dataset cards ──────────────────────────────────────────── */
+    .dataset-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+    .dataset-card {
+      border: 1px solid var(--rule);
+      background: var(--surface);
+      padding: 1.75rem;
+    }
+    .dataset-card h3 {
+      font-family: var(--serif);
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+      color: var(--ink);
+    }
+    .dataset-card .tag {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: var(--accent-lt);
+      padding: 0.2rem 0.6rem;
+      margin-bottom: 0.75rem;
+    }
+    .dataset-card p {
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin-bottom: 0.75rem;
+    }
+    .dataset-stat {
+      font-size: 0.8rem;
+      color: var(--muted);
+      border-top: 1px solid var(--rule);
+      padding-top: 0.75rem;
+      margin-top: 0.75rem;
+    }
+    .dataset-stat strong { color: var(--ink); }
+
+    /* ── Example prompts ────────────────────────────────────────── */
+    .example-list {
+      margin-top: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 2.5rem;
+    }
+    .example {
+      border-left: 2px solid var(--accent);
+      padding-left: 1.5rem;
+    }
+    .example-prompt {
+      font-family: var(--serif);
+      font-size: 1.05rem;
+      font-style: italic;
+      color: var(--ink);
+      margin-bottom: 0.5rem;
+    }
+    .example-desc {
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin-bottom: 1rem;
+    }
+    .chart-embed {
+      border: 1px solid var(--rule);
+      background: var(--surface);
+      height: 420px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .chart-embed iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    .chart-placeholder {
+      text-align: center;
+      color: var(--muted);
+    }
+    .chart-placeholder svg {
+      width: 48px;
+      height: 48px;
+      margin-bottom: 0.75rem;
+      opacity: 0.3;
+    }
+    .chart-placeholder p {
+      font-size: 0.85rem;
+      margin: 0;
+    }
+    .chart-placeholder code {
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      background: var(--accent-lt);
+      color: var(--accent);
+      padding: 0.15rem 0.4rem;
+    }
+
+    /* ── How it works ───────────────────────────────────────────── */
+    .steps {
+      margin-top: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .step {
+      display: grid;
+      grid-template-columns: 48px 1fr;
+      gap: 1.25rem;
+      padding: 1.5rem 0;
+      border-bottom: 1px solid var(--rule);
+    }
+    .step:last-child { border-bottom: none; }
+    .step-num {
+      font-family: var(--serif);
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--rule);
+      line-height: 1;
+      padding-top: 0.2rem;
+    }
+    .step h3 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--ink);
+      margin-bottom: 0.35rem;
+    }
+    .step p {
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin: 0;
+      max-width: none;
+    }
+
+    /* ── Future use cases ───────────────────────────────────────── */
+    .usecase-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 1.25rem;
+      margin-top: 2rem;
+    }
+    .usecase-card {
+      padding: 1.5rem;
+      border: 1px solid var(--rule);
+      background: var(--surface);
+    }
+    .usecase-card h3 {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--ink);
+      margin-bottom: 0.5rem;
+    }
+    .usecase-card p {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin: 0;
+    }
+
+    /* ── Technical section ──────────────────────────────────────── */
+    .tech-divider {
+      border: none;
+      border-top: 2px solid var(--ink);
+      margin: 4rem 0 0;
+    }
+    .tech-header {
+      padding: 2rem 0 0;
+    }
+    .tech-header p {
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+    .tech-header h2 {
+      font-family: var(--serif);
+      font-size: 1.7rem;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .pipeline {
+      margin-top: 2.5rem;
+      border: 1px solid var(--rule);
+      background: var(--surface);
+      padding: 2rem;
+    }
+    .pipeline h3 {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+    }
+    .pipeline-steps {
+      display: flex;
+      align-items: flex-start;
+      gap: 0;
+      flex-wrap: wrap;
+    }
+    .pipe-step {
+      flex: 1;
+      min-width: 120px;
+      text-align: center;
+      position: relative;
+    }
+    .pipe-step:not(:last-child)::after {
+      content: '→';
+      position: absolute;
+      right: -0.75rem;
+      top: 0.6rem;
+      color: var(--rule);
+      font-size: 1.2rem;
+    }
+    .pipe-box {
+      background: var(--accent-lt);
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.5rem 0.75rem;
+      margin-bottom: 0.5rem;
+      letter-spacing: 0.03em;
+    }
+    .pipe-label {
+      font-size: 0.72rem;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .stack-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+      margin-top: 2rem;
+    }
+    .stack-card {
+      border: 1px solid var(--rule);
+      padding: 1.5rem;
+      background: var(--surface);
+    }
+    .stack-card h3 {
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 1rem;
+    }
+    .stack-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 0.4rem 0;
+      border-bottom: 1px solid var(--rule);
+      font-size: 0.875rem;
+    }
+    .stack-item:last-child { border-bottom: none; }
+    .stack-item-name { color: var(--ink); font-weight: 500; }
+    .stack-item-role { color: var(--muted); font-size: 0.8rem; }
+
+    .code-block {
+      background: #1a1a1a;
+      color: #e8e8e8;
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      line-height: 1.6;
+      padding: 1.5rem;
+      margin-top: 1.5rem;
+      overflow-x: auto;
+    }
+    .code-block .comment { color: #6b6b6b; }
+    .code-block .key { color: #88b4e7; }
+    .code-block .val { color: #b8d4a8; }
+    .code-block .str { color: #e8c97a; }
+
+    /* ── Footer ─────────────────────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--rule);
+      padding: 2.5rem 2rem;
+      max-width: 860px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    footer p {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+    footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    @media (max-width: 640px) {
+      .dataset-grid, .usecase-grid, .stack-grid { grid-template-columns: 1fr; }
+      .nav-links { display: none; }
+      .pipeline-steps { gap: 1rem; }
+      .pipe-step::after { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav>
+  <a class="nav-brand" href="#">Religion &amp; Politics Explorer</a>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#datasets">Datasets</a></li>
+    <li><a href="#examples">Examples</a></li>
+    <li><a href="#how">How It Works</a></li>
+    <li><a href="#future">Future</a></li>
+    <li><a href="#technical">Technical</a></li>
+  </ul>
+</nav>
+
+<!-- Hero -->
+<div class="hero">
+  <p class="hero-eyebrow">WashU DTRC · Data Tool</p>
+  <h1>Ask questions about <em>American religion and politics.</em> Get a chart.</h1>
+  <p class="hero-lead">
+    A natural language interface to 50+ years of the General Social Survey and Cooperative Election Study — built for researchers who want answers, not query syntax.
+  </p>
+  <div class="hero-meta">
+    <div class="meta-item">
+      <span class="meta-label">Survey years</span>
+      <span class="meta-value">1972 – 2024</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Datasets</span>
+      <span class="meta-value">GSS + CES</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Respondents</span>
+      <span class="meta-value">700k+</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Built at</span>
+      <span class="meta-value">WashU</span>
+    </div>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- About -->
+  <section class="section" id="about">
+    <p class="section-label">About the tool</p>
+    <h2>From plain English to publication-ready charts</h2>
+    <p>
+      The Religion &amp; Politics Explorer is a research tool developed at WashU's Data, Technology, and Research Center. Researchers type a question in plain English — "How has abortion support changed among Republicans since 1980?" — and the tool generates a survey-weighted chart with confidence intervals, drawn directly from microdata.
+    </p>
+    <p>
+      No SQL. No data wrangling. No coding. The platform handles variable selection, survey weighting, and statistical aggregation automatically, letting researchers focus on interpretation rather than data preparation.
+    </p>
+    <div class="steps" style="margin-top: 2rem;">
+      <div class="step">
+        <span class="step-num">1</span>
+        <div>
+          <h3>Ask a question</h3>
+          <p>Type any research question about U.S. religion, politics, or social attitudes. The tool understands follow-up questions and context from prior turns.</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">2</span>
+        <div>
+          <h3>Review the analysis</h3>
+          <p>The tool explains what it found in plain language, shows the SQL used to query the data, and flags small sample sizes automatically.</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">3</span>
+        <div>
+          <h3>Explore and export</h3>
+          <p>Customize colors, fonts, and confidence bands. Download as CSV, PNG, or interactive HTML for embedding in publications and newsletters.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Datasets -->
+  <section class="section" id="datasets">
+    <p class="section-label">Data sources</p>
+    <h2>Two of the most comprehensive surveys of American public opinion</h2>
+    <p>
+      All charts are generated from raw microdata — individual survey responses with survey weights applied — not pre-aggregated tables. This gives researchers full flexibility to slice by any combination of variables.
+    </p>
+    <div class="dataset-grid">
+      <div class="dataset-card">
+        <span class="tag">GSS</span>
+        <h3>General Social Survey</h3>
+        <p>
+          Run by NORC at the University of Chicago since 1972, the GSS is the gold standard for tracking long-run trends in American social attitudes. It covers religion, politics, race, gender, sexuality, and more.
+        </p>
+        <div class="dataset-stat">
+          <strong>Coverage:</strong> 1972 – 2024 · Biennial · ~2,000 respondents/year<br/>
+          <strong>Key variables:</strong> Party ID, abortion, church attendance, race, education, ideology
+        </div>
+      </div>
+      <div class="dataset-card">
+        <span class="tag">CES</span>
+        <h3>Cooperative Election Study</h3>
+        <p>
+          Formerly CCES, the CES is a large-scale annual survey fielded since 2006, with sample sizes of 50,000+ respondents per year. Its scale makes it ideal for state-level and subgroup analysis.
+        </p>
+        <div class="dataset-stat">
+          <strong>Coverage:</strong> 2006 – 2024 · Annual · 50,000+ respondents/year<br/>
+          <strong>Key variables:</strong> Party ID, religion, ideology, vote choice, state, race
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Examples -->
+  <section class="section" id="examples">
+    <p class="section-label">Example prompts</p>
+    <h2>What you can ask</h2>
+    <p>
+      The tool handles time series, cross-sectional comparisons, demographic breakdowns, and geographic maps. Below are a few examples — replace the embedded chart placeholders with your own exported HTML files.
+    </p>
+
+    <div class="example-list">
+
+      <div class="example">
+        <p class="example-prompt">"How has support for abortion changed among Democrats and Republicans over time?"</p>
+        <p class="example-desc">Generates a time-series line chart from the GSS, showing survey-weighted support for abortion for any reason (abany) by party identification from 1972 to 2024.</p>
+        <div class="chart-embed">
+          <!-- Replace with: <iframe src="your-chart.html"></iframe> -->
+          <div class="chart-placeholder">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3v18h18"/><path d="M7 16l4-4 4 4 4-4"/></svg>
+            <p>Embed your exported chart here.<br/>Export from the tool → paste <code>&lt;iframe src="chart.html"&gt;</code></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="example">
+        <p class="example-prompt">"What is the religious makeup of each political party, and how has it shifted since 1990?"</p>
+        <p class="example-desc">Generates three subplot panels — one per party — showing the weighted share of each religious group over time from the GSS.</p>
+        <div class="chart-embed">
+          <div class="chart-placeholder">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3v18h18"/><path d="M7 16l4-4 4 4 4-4"/></svg>
+            <p>Embed your exported chart here.<br/>Export from the tool → paste <code>&lt;iframe src="chart.html"&gt;</code></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="example">
+        <p class="example-prompt">"Show me the Catholic share of the population by state"</p>
+        <p class="example-desc">Generates a choropleth map from the CES using the abbr column, showing survey-weighted Catholic share in each state for the most recent survey year.</p>
+        <div class="chart-embed">
+          <div class="chart-placeholder">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3v18h18"/><path d="M7 16l4-4 4 4 4-4"/></svg>
+            <p>Embed your exported chart here.<br/>Export from the tool → paste <code>&lt;iframe src="chart.html"&gt;</code></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="example">
+        <p class="example-prompt">"How does church attendance differ by political party?"</p>
+        <p class="example-desc">Generates a grouped bar chart showing the distribution of church attendance frequency (attend, 0–8) across Democrats, Independents, and Republicans from the GSS.</p>
+        <div class="chart-embed">
+          <div class="chart-placeholder">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3v18h18"/><rect x="7" y="10" width="3" height="8"/><rect x="13" y="6" width="3" height="12"/></svg>
+            <p>Embed your exported chart here.<br/>Export from the tool → paste <code>&lt;iframe src="chart.html"&gt;</code></p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- How it works -->
+  <section class="section" id="how">
+    <p class="section-label">Under the hood</p>
+    <h2>How the tool works</h2>
+    <p>
+      Each query goes through a two-phase pipeline. The first phase is fast — it returns a written analysis and SQL within seconds. The second phase generates the chart in the background while the user reads the response.
+    </p>
+
+    <div class="pipeline" style="margin-top: 2rem;">
+      <h3>Query pipeline</h3>
+      <div class="pipeline-steps">
+        <div class="pipe-step">
+          <div class="pipe-box">User query</div>
+          <div class="pipe-label">Plain English + conversation history</div>
+        </div>
+        <div class="pipe-step">
+          <div class="pipe-box">SQL generation</div>
+          <div class="pipe-label">GPT-4.1 translates to DuckDB SQL</div>
+        </div>
+        <div class="pipe-step">
+          <div class="pipe-box">Data fetch</div>
+          <div class="pipe-label">DuckDB queries microdata</div>
+        </div>
+        <div class="pipe-step">
+          <div class="pipe-box">Plot scripting</div>
+          <div class="pipe-label">Claude generates Python/Plotly</div>
+        </div>
+        <div class="pipe-step">
+          <div class="pipe-box">Sandbox</div>
+          <div class="pipe-label">Docker executes script safely</div>
+        </div>
+        <div class="pipe-step">
+          <div class="pipe-box">Chart</div>
+          <div class="pipe-label">Interactive Plotly spec returned</div>
+        </div>
+      </div>
+    </div>
+
+    <p style="margin-top: 1.5rem;">
+      Survey weights are applied at aggregation time using each dataset's design variables (vpsu, vstrat for GSS). 95% confidence intervals are computed using effective sample size from the weight distribution and appended as toggleable bands on every chart.
+    </p>
+  </section>
+
+  <!-- Future -->
+  <section class="section" id="future">
+    <p class="section-label">What's next</p>
+    <h2>Future directions</h2>
+    <div class="usecase-grid">
+      <div class="usecase-card">
+        <h3>Education mode</h3>
+        <p>A simplified interface for university classrooms, letting students explore U.S. political trends interactively while learning how to work with survey data and LLM tools.</p>
+      </div>
+      <div class="usecase-card">
+        <h3>Additional datasets</h3>
+        <p>Expanding coverage to include Pew Research, ANES, and other major surveys of American religion and politics to broaden the range of answerable questions.</p>
+      </div>
+      <div class="usecase-card">
+        <h3>Publication embeds</h3>
+        <p>Applying to Substack's embed partner program to allow researchers to publish interactive charts directly from the tool into their newsletters with a single link.</p>
+      </div>
+      <div class="usecase-card">
+        <h3>Journalist access</h3>
+        <p>Opening the platform to data journalists covering religion and politics, enabling faster, more rigorous reporting backed by survey microdata.</p>
+      </div>
+      <div class="usecase-card">
+        <h3>Comparative religion</h3>
+        <p>Extending the tool to support cross-national survey data (World Values Survey, Pew Global) for comparative religion and politics research.</p>
+      </div>
+      <div class="usecase-card">
+        <h3>API access</h3>
+        <p>Exposing a programmatic API so researchers can query the datasets directly from their own analysis pipelines, R scripts, or Jupyter notebooks.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Technical documentation -->
+  <hr class="tech-divider" />
+  <div class="tech-header" id="technical">
+    <p>Technical documentation</p>
+    <h2>Architecture &amp; Stack</h2>
+  </div>
+
+  <section class="section">
+    <p class="section-label">System architecture</p>
+    <h2>A two-phase LLM pipeline on WashU HPC</h2>
+    <p>
+      The backend runs on WashU's Research Infrastructure Services (RIS) cluster via SLURM job scheduling, with OAuth2-authenticated access to WashU's AI API gateway. A separate FastAPI server handles routing, DuckDB queries, and job management.
+    </p>
+    <p>
+      Plot generation runs in a Dockerized Python sandbox — LLM-generated scripts never execute directly on the server. The sandbox has a restricted namespace (only pandas, plotly, and a few helpers) and a 55-second timeout.
+    </p>
+
+    <div class="stack-grid">
+      <div class="stack-card">
+        <h3>Backend</h3>
+        <div class="stack-item"><span class="stack-item-name">FastAPI</span><span class="stack-item-role">API server</span></div>
+        <div class="stack-item"><span class="stack-item-name">DuckDB</span><span class="stack-item-role">Survey microdata queries</span></div>
+        <div class="stack-item"><span class="stack-item-name">Docker</span><span class="stack-item-role">Plot script sandbox</span></div>
+        <div class="stack-item"><span class="stack-item-name">SLURM / RIS</span><span class="stack-item-role">HPC job scheduling</span></div>
+        <div class="stack-item"><span class="stack-item-name">AWS EC2</span><span class="stack-item-role">Application hosting</span></div>
+      </div>
+      <div class="stack-card">
+        <h3>Frontend</h3>
+        <div class="stack-item"><span class="stack-item-name">React + Vite</span><span class="stack-item-role">UI framework</span></div>
+        <div class="stack-item"><span class="stack-item-name">Tailwind CSS v4</span><span class="stack-item-role">Styling</span></div>
+        <div class="stack-item"><span class="stack-item-name">Plotly.js</span><span class="stack-item-role">Interactive charts</span></div>
+        <div class="stack-item"><span class="stack-item-name">Supabase</span><span class="stack-item-role">Auth + persistence</span></div>
+      </div>
+      <div class="stack-card">
+        <h3>AI models</h3>
+        <div class="stack-item"><span class="stack-item-name">GPT-4.1</span><span class="stack-item-role">SQL generation</span></div>
+        <div class="stack-item"><span class="stack-item-name">Claude Sonnet</span><span class="stack-item-role">Plot script generation</span></div>
+        <div class="stack-item"><span class="stack-item-name">WashU AI API</span><span class="stack-item-role">OAuth2 gateway</span></div>
+      </div>
+      <div class="stack-card">
+        <h3>Data</h3>
+        <div class="stack-item"><span class="stack-item-name">GSS 1972–2024</span><span class="stack-item-role">NORC microdata</span></div>
+        <div class="stack-item"><span class="stack-item-name">CES 2006–2024</span><span class="stack-item-role">Harvard Dataverse</span></div>
+        <div class="stack-item"><span class="stack-item-name">Survey weights</span><span class="stack-item-role">vpsu · vstrat · weight</span></div>
+      </div>
+    </div>
+
+    <div class="code-block">
+<span class="comment"># Example: POST /query response</span>
+{
+  <span class="key">"job_id"</span>:    <span class="str">"a3f9c2..."</span>,
+  <span class="key">"gss_sql"</span>:   <span class="str">"SELECT year, survey_weight, abany_bin FROM gss_raw WHERE..."</span>,
+  <span class="key">"note"</span>:     <span class="str">"Support for abortion has risen steadily since the 1970s..."</span>,
+  <span class="key">"title"</span>:    <span class="str">"Abortion support over time"</span>,
+  <span class="key">"auto_graph"</span>: <span class="val">false</span>,
+  <span class="key">"low_sample_warning"</span>: <span class="val">null</span>,
+  <span class="key">"suggested_followups"</span>: [<span class="str">"How does this differ by religion?"</span>, ...]
+}
+    </div>
+  </section>
+
+</div>
+
+<!-- Footer -->
+<footer>
+  <p>Built by Namit &amp; Phil · WashU DTRC · 2026</p>
+  <p><a href="https://religion-politics.di2washu.com">Open the tool →</a></p>
+</footer>
+
+</body>
+</html>
