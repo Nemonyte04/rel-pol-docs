@@ -598,18 +598,18 @@
           <!-- Replace with: <iframe src="your-chart.html"></iframe> -->
           <div class="chart-placeholder">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3v18h18"/><path d="M7 16l4-4 4 4 4-4"/></svg>
-            <p>Embed your exported chart here.<br/>Export from the tool → paste <code>&lt;iframe src="chart.html"&gt;</code></p>
+            <p>Embed your exported chart here.<br/>Export from the tool → paste <code>&lt;iframe src="chart1.html"&gt;</code></p>
           </div>
         </div>
       </div>
 
       <div class="example">
-        <p class="example-prompt">"What is the religious makeup of each political party, and how has it shifted since 1990?"</p>
-        <p class="example-desc">Generates three subplot panels — one per party — showing the weighted share of each religious group over time from the GSS.</p>
+        <p class="example-prompt">"How has the religious makeup of each party changed over time?"</p>
+        <p class="example-desc">Generates two subplot panels — one per party — showing the weighted share of each racial group over time from the CES.</p>
         <div class="chart-embed">
           <div class="chart-placeholder">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3v18h18"/><path d="M7 16l4-4 4 4 4-4"/></svg>
-            <p>Embed your exported chart here.<br/>Export from the tool → paste <code>&lt;iframe src="chart.html"&gt;</code></p>
+            <p>Embed your exported chart here.<br/>Export from the tool → paste <code>&lt;iframe src="chart2.html"&gt;</code></p>
           </div>
         </div>
       </div>
@@ -620,22 +620,12 @@
         <div class="chart-embed">
           <div class="chart-placeholder">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3v18h18"/><path d="M7 16l4-4 4 4 4-4"/></svg>
-            <p>Embed your exported chart here.<br/>Export from the tool → paste <code>&lt;iframe src="chart.html"&gt;</code></p>
+            <p>Embed your exported chart here.<br/>Export from the tool → paste <code>&lt;iframe src="chart3.html"&gt;</code></p>
           </div>
         </div>
       </div>
 
-      <div class="example">
-        <p class="example-prompt">"How does church attendance differ by political party?"</p>
-        <p class="example-desc">Generates a grouped bar chart showing the distribution of church attendance frequency (attend, 0–8) across Democrats, Independents, and Republicans from the GSS.</p>
-        <div class="chart-embed">
-          <div class="chart-placeholder">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3v18h18"/><rect x="7" y="10" width="3" height="8"/><rect x="13" y="6" width="3" height="12"/></svg>
-            <p>Embed your exported chart here.<br/>Export from the tool → paste <code>&lt;iframe src="chart.html"&gt;</code></p>
-          </div>
-        </div>
-      </div>
-
+     
     </div>
   </section>
 
@@ -721,45 +711,7 @@
     <h2>Architecture &amp; Stack</h2>
   </div>
 
-  <section class="section">
-    <p class="section-label">System architecture</p>
-    <h2>A two-phase LLM pipeline on WashU HPC</h2>
-    <p>
-      The backend runs on WashU's Research Infrastructure Services (RIS) cluster via SLURM job scheduling, with OAuth2-authenticated access to WashU's AI API gateway. A separate FastAPI server handles routing, DuckDB queries, and job management.
-    </p>
-    <p>
-      Plot generation runs in a Dockerized Python sandbox — LLM-generated scripts never execute directly on the server. The sandbox has a restricted namespace (only pandas, plotly, and a few helpers) and a 55-second timeout.
-    </p>
-
-    <div class="stack-grid">
-      <div class="stack-card">
-        <h3>Backend</h3>
-        <div class="stack-item"><span class="stack-item-name">FastAPI</span><span class="stack-item-role">API server</span></div>
-        <div class="stack-item"><span class="stack-item-name">DuckDB</span><span class="stack-item-role">Survey microdata queries</span></div>
-        <div class="stack-item"><span class="stack-item-name">Docker</span><span class="stack-item-role">Plot script sandbox</span></div>
-        <div class="stack-item"><span class="stack-item-name">SLURM / RIS</span><span class="stack-item-role">HPC job scheduling</span></div>
-        <div class="stack-item"><span class="stack-item-name">AWS EC2</span><span class="stack-item-role">Application hosting</span></div>
-      </div>
-      <div class="stack-card">
-        <h3>Frontend</h3>
-        <div class="stack-item"><span class="stack-item-name">React + Vite</span><span class="stack-item-role">UI framework</span></div>
-        <div class="stack-item"><span class="stack-item-name">Tailwind CSS v4</span><span class="stack-item-role">Styling</span></div>
-        <div class="stack-item"><span class="stack-item-name">Plotly.js</span><span class="stack-item-role">Interactive charts</span></div>
-        <div class="stack-item"><span class="stack-item-name">Supabase</span><span class="stack-item-role">Auth + persistence</span></div>
-      </div>
-      <div class="stack-card">
-        <h3>AI models</h3>
-        <div class="stack-item"><span class="stack-item-name">GPT-4.1</span><span class="stack-item-role">SQL generation</span></div>
-        <div class="stack-item"><span class="stack-item-name">Claude Sonnet</span><span class="stack-item-role">Plot script generation</span></div>
-        <div class="stack-item"><span class="stack-item-name">WashU AI API</span><span class="stack-item-role">OAuth2 gateway</span></div>
-      </div>
-      <div class="stack-card">
-        <h3>Data</h3>
-        <div class="stack-item"><span class="stack-item-name">GSS 1972–2024</span><span class="stack-item-role">NORC microdata</span></div>
-        <div class="stack-item"><span class="stack-item-name">CES 2006–2024</span><span class="stack-item-role">Harvard Dataverse</span></div>
-        <div class="stack-item"><span class="stack-item-name">Survey weights</span><span class="stack-item-role">vpsu · vstrat · weight</span></div>
-      </div>
-    </div>
+ 
 
     <div class="code-block">
 <span class="comment"># Example: POST /query response</span>
@@ -779,7 +731,6 @@
 
 <!-- Footer -->
 <footer>
-  <p>Built by Namit &amp; Phil · WashU DTRC · 2026</p>
   <p><a href="https://religion-politics.di2washu.com">Open the tool →</a></p>
 </footer>
 
