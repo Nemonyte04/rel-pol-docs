@@ -344,6 +344,17 @@
       color: var(--ink);
     }
 
+    .stack-graph {
+      margin-top: 2rem;
+      border: 1px solid var(--rule);
+      background: var(--surface);
+      padding: 2rem 1rem;
+      overflow-x: auto;
+    }
+    .stack-graph .mermaid { text-align: center; }
+    /* mermaid inlines max-width on the svg — override so it fills the container */
+    .stack-graph .mermaid svg { max-width: 100% !important; width: 100%; height: auto; }
+
     .pipeline {
       margin-top: 2.5rem;
       border: 1px solid var(--rule);
@@ -586,14 +597,14 @@
     <p class="section-label">Example prompts</p>
     <h2>What you can ask</h2>
     <p>
-      The tool handles time series, cross-sectional comparisons, demographic breakdowns, and geographic maps. Below are a few examples — replace the embedded chart placeholders with your own exported HTML files.
+      The tool handles time series, cross-sectional comparisons, demographic breakdowns, and geographic maps. 
     </p>
 
     <div class="example-list">
 
       <div class="example">
         <p class="example-prompt">"How has support for abortion changed among Democrats and Republicans over time?"</p>
-        <p class="example-desc">Generates a time-series line chart from the GSS, showing survey-weighted support for abortion for any reason (abany) by party identification from 1972 to 2024.</p>
+        <p class="example-desc">Generates a time-series line chart from the GSS, showing survey-weighted support for abortion for any reason (abany) by party identification from 1977 to 2024.</p>
         <div class="chart-embed">
           <!-- Replace with: <iframe src="your-chart.html"></iframe> -->
           <iframe src="chart1.html"></iframe>
@@ -642,7 +653,7 @@
         </div>
         <div class="pipe-step">
           <div class="pipe-box">SQL generation</div>
-          <div class="pipe-label">GPT-4.1 translates to DuckDB SQL</div>
+          <div class="pipe-label">Claude Opus 4.8 translates to DuckDB SQL</div>
         </div>
         <div class="pipe-step">
           <div class="pipe-box">Data fetch</div>
@@ -650,7 +661,7 @@
         </div>
         <div class="pipe-step">
           <div class="pipe-box">Plot scripting</div>
-          <div class="pipe-label">Claude generates Python/Plotly</div>
+          <div class="pipe-label">Claude Opus 4.8 generates Python/Plotly</div>
         </div>
         <div class="pipe-step">
           <div class="pipe-box">Sandbox</div>
@@ -707,7 +718,53 @@
     <h2>Architecture &amp; Stack</h2>
   </div>
 
- 
+  <section class="section">
+    <p>
+      Two independent halves. The browser talks to Supabase for auth, history, and stored chart specs, enforced by row-level security. It talks to the FastAPI backend anonymously for analysis. Neither half knows about the other.
+    </p>
+
+    <div class="stack-graph">
+      <pre class="mermaid">
+flowchart TB
+  subgraph client["Client — AWS EC2, nginx static"]
+    react["React + Vite<br/>Tailwind CSS"]
+  end
+
+  subgraph supa["Supabase (managed)"]
+    auth["Auth"]
+    pg["Postgres<br/>history + Plotly specs<br/>RLS"]
+  end
+
+  subgraph api["Backend — AWS EC2"]
+    fastapi["FastAPI + Uvicorn<br/>anonymous routes"]
+    duck["DuckDB in-process"]
+    parquet[("Local parquet<br/>GSS + CES microdata")]
+  end
+
+  subgraph exec["Sandbox container"]
+    flask["Flask exec-over-HTTP<br/>stateless"]
+  end
+
+  llm["Claude Opus 4.8<br/>SQL + Plotly generation"]
+
+  react -- "supabase-js" --> auth
+  react -- "supabase-js" --> pg
+  react -- "POST /query, long-poll /plot/:id" --> fastapi
+  fastapi --> llm
+  fastapi --> duck
+  duck --> parquet
+  fastapi -- "data + script as one JSON body" --> flask
+  flask -- "Plotly spec" --> fastapi
+      </pre>
+    </div>
+  </section>
+
+  <section class="section">
+    <div>
+      <h3>
+        Example Outputs Passed into the Plotting Sandbox:
+      </h3>
+    </div>
 
     <div class="code-block">
 <span class="comment"># Example: POST /query response</span>
@@ -721,7 +778,54 @@
   <span class="key">"suggested_followups"</span>: [<span class="str">"How does this differ by religion?"</span>, ...]
 }
     </div>
+    <div>
+      <p>
+      <h3>
+        Example Output Returned from the Plotting Sandbox :
+      </h3>
+      </p>
+      <div class="code-block">
+{
+  <span class="key">"gss_spec"</span>: {
+    <span class="key">"data"</span>: [
+      {
+        <span class="key">"type"</span>: <span class="str">"scatter"</span>, <span class="key">"name"</span>: <span class="str">"Support"</span>, <span class="key">"mode"</span>: <span class="str">"lines+markers"</span>,
+        <span class="key">"line"</span>: { <span class="key">"color"</span>: <span class="str">"#2166AC"</span>, <span class="key">"width"</span>: <span class="val">2.5</span> },
+        <span class="key">"x"</span>: [<span class="val">2012</span>, <span class="val">2014</span>, <span class="val">2016</span>, <span class="val">2018</span>, <span class="val">2021</span>],
+        <span class="key">"y"</span>: [<span class="val">48.46</span>, <span class="val">45.59</span>, <span class="val">48.28</span>, <span class="val">48.47</span>, <span class="val">48.58</span>]
+      },
+      {
+        <span class="key">"type"</span>: <span class="str">"scatter"</span>, <span class="key">"name"</span>: <span class="str">"Support_ci"</span>,
+        <span class="key">"fill"</span>: <span class="str">"toself"</span>, <span class="key">"fillcolor"</span>: <span class="str">"rgba(33,102,172,0.15)"</span>,
+        <span class="key">"line"</span>: { <span class="key">"color"</span>: <span class="str">"rgba(255,255,255,0)"</span> },
+        <span class="key">"visible"</span>: <span class="val">false</span>, <span class="key">"showlegend"</span>: <span class="val">false</span>, <span class="key">"hoverinfo"</span>: <span class="str">"skip"</span>,
+        <span class="key">"xaxis"</span>: <span class="str">"x"</span>, <span class="key">"yaxis"</span>: <span class="str">"y"</span>,
+        <span class="key">"x"</span>: [<span class="val">2012</span>, <span class="val">2014</span>, <span class="val">2016</span>, <span class="val">2018</span>, <span class="val">2021</span>, <span class="val">2021</span>, <span class="val">2018</span>, <span class="val">2016</span>, <span class="val">2014</span>, <span class="val">2012</span>],
+        <span class="key">"y"</span>: [<span class="val">53.733</span>, <span class="val">50.831</span>, <span class="val">53.549</span>, <span class="val">53.722</span>, <span class="val">53.842</span>,
+              <span class="val">43.308</span>, <span class="val">43.209</span>, <span class="val">43.013</span>, <span class="val">40.339</span>, <span class="val">43.186</span>]
+      },
+      {
+        <span class="key">"type"</span>: <span class="str">"scatter"</span>, <span class="key">"name"</span>: <span class="str">"95% CI"</span>, <span class="key">"mode"</span>: <span class="str">"markers"</span>,
+        <span class="key">"marker"</span>: { <span class="key">"size"</span>: <span class="val">10</span>, <span class="key">"color"</span>: <span class="str">"rgba(136,136,136,0.3)"</span>, <span class="key">"symbol"</span>: <span class="str">"square"</span> },
+        <span class="key">"visible"</span>: <span class="val">false</span>, <span class="key">"showlegend"</span>: <span class="val">true</span>, <span class="key">"hoverinfo"</span>: <span class="str">"skip"</span>,
+        <span class="key">"x"</span>: [<span class="val">null</span>], <span class="key">"y"</span>: [<span class="val">null</span>]
+      }
+    ],
+    <span class="key">"layout"</span>: {
+      <span class="key">"title"</span>:    { <span class="key">"text"</span>: <span class="str">"Support for abortion for any reason (GSS, 2012-2021)"</span> },
+      <span class="key">"xaxis"</span>:    { <span class="key">"title"</span>: { <span class="key">"text"</span>: <span class="str">"Year"</span> } },
+      <span class="key">"yaxis"</span>:    { <span class="key">"title"</span>: { <span class="key">"text"</span>: <span class="str">"Percent"</span> } },
+      <span class="key">"template"</span>: <span class="str">"&lt;...plotly_white template, ~7.5KB, elided...&gt;"</span>
+    }
+  },
+  <span class="key">"ces_spec"</span>: <span class="val">null</span>,
+  <span class="key">"is_empty"</span>: <span class="val">false</span>,
+  <span class="key">"error"</span>:    <span class="val">null</span>
+}
+    </div>
+    </div>
   </section>
+  
 
 </div>
 
@@ -729,6 +833,26 @@
 <footer>
   <p><a href="https://religion-politics.di2washu.com">Open the tool →</a></p>
 </footer>
+
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'base',
+    flowchart: { nodeSpacing: 55, rankSpacing: 100, padding: 24 },
+    themeVariables: {
+      fontFamily: "'Inter', system-ui, sans-serif",
+      fontSize: '20px',
+      primaryColor: '#ffffff',
+      primaryTextColor: '#1a1a1a',
+      primaryBorderColor: '#1a1a1a',
+      lineColor: '#6b6b6b',
+      clusterBkg: '#faf9f7',
+      clusterBorder: '#e0ddd8',
+      tertiaryColor: '#f9e8eb',
+    },
+  });
+</script>
 
 </body>
 </html>
